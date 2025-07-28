@@ -240,6 +240,43 @@ streams:
   glichy_camera: ffmpeg:rtsp://username:password@192.168.1.123/live/ch00_1 
 ```
 
+**Stream Grouping**
+
+You can organize your streams into groups for better organization. Groups are flattened internally with the naming convention `group/stream`.
+
+```yaml
+streams:
+  # Group streams by camera brand
+  dahua:
+    camera1: rtsp://admin:password@192.168.1.123/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif
+    camera2: rtsp://admin:password@192.168.1.123/cam/realmonitor?channel=1&subtype=1
+  
+  reolink:
+    main: rtsp://admin:password@192.168.1.124/h264Preview_01_main
+    sub: rtsp://admin:password@192.168.1.124/h264Preview_01_sub
+  
+  # Nested groups are also supported
+  outdoor:
+    front:
+      main: rtsp://admin:password@192.168.1.125/av_stream/ch0
+      backup: rtsp://admin:password@192.168.1.125/av_stream/ch1
+    back:
+      main: rtsp://admin:password@192.168.1.126/av_stream/ch0
+
+  # Regular flat configuration still works
+  standalone: rtsp://admin:password@192.168.1.127/av_stream/ch0
+```
+
+In the above example, the streams would be accessible as:
+- `dahua/camera1`
+- `dahua/camera2`
+- `reolink/main`
+- `reolink/sub`
+- `outdoor/front/main`
+- `outdoor/front/backup`
+- `outdoor/back/main`
+- `standalone`
+
 **Recommendations**
 
 - **Amcrest Doorbell** users may want to disable two-way audio, because with an active stream, you won't have a working call button. You need to add `#backchannel=0` to the end of your RTSP link in YAML config file

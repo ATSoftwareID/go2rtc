@@ -1,5 +1,46 @@
 ## Examples
 
+### Stream Grouping
+
+You can organize your streams into groups for better organization. Groups are flattened internally with the naming convention `group/stream`.
+
+```yaml
+streams:
+  # Group streams by camera brand
+  dahua:
+    camera1: rtsp://admin:password@192.168.10.90/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif
+    camera2: rtsp://admin:password@192.168.10.90/cam/realmonitor?channel=1&subtype=1
+  
+  reolink:
+    main: rtsp://admin:password@192.168.10.92/h264Preview_01_main
+    sub: rtsp://admin:password@192.168.10.92/h264Preview_01_sub
+    rtmp: rtmp://192.168.10.92/bcs/channel0_main.bcs?channel=0&stream=0&user=admin&password=password
+  
+  # Nested groups are also supported
+  outdoor:
+    front:
+      main: rtsp://admin:password@192.168.10.93/av_stream/ch0
+      backup: rtsp://admin:password@192.168.10.93/av_stream/ch1
+    back:
+      main: rtsp://admin:password@192.168.10.94/av_stream/ch0
+
+  # Regular flat configuration still works
+  standalone: rtsp://admin:password@192.168.10.95/av_stream/ch0
+```
+
+In the above example, the streams would be accessible as:
+- `dahua/camera1`
+- `dahua/camera2`
+- `reolink/main`
+- `reolink/sub`
+- `reolink/rtmp`
+- `outdoor/front/main`
+- `outdoor/front/backup`
+- `outdoor/back/main`
+- `standalone`
+
+### Traditional Flat Configuration
+
 ```yaml
 streams:
   # known RTSP sources

@@ -12,6 +12,47 @@ import (
 	"github.com/rs/zerolog"
 )
 
+// processStreams recursively processes the streams configuration to handle groups
+func processStreams(streams map[string]any, prefix string) map[string]any {
+	result := make(map[string]any)
+
+	for name, item := range streams {
+		fullName := name
+		if prefix != "" {
+			fullName = prefix + "/" + name
+		}
+
+		// Check if this is a group (map with nested streams)
+		if group, ok := item.(map[string]any); ok {
+			// Check if this looks like a group by seeing if it contains stream-like values
+			isGroup := false
+			for _, v := range group {
+				switch v.(type) {
+				case string, []string, []any:
+					isGroup = true
+					break
+				}
+			}
+
+			if isGroup {
+				// Recursively process the group
+				groupStreams := processStreams(group, fullName)
+				for k, v := range groupStreams {
+					result[k] = v
+				}
+			} else {
+				// This is a regular stream with map configuration
+				result[fullName] = item
+			}
+		} else {
+			// This is a regular stream
+			result[fullName] = item
+		}
+	}
+
+	return result
+}
+
 func Init() {
 	var cfg struct {
 		Streams map[string]any `yaml:"streams"`
@@ -22,7 +63,10 @@ func Init() {
 
 	log = app.GetLogger("streams")
 
-	for name, item := range cfg.Streams {
+	// Process streams to handle groups
+	processedStreams := processStreams(cfg.Streams, "")
+
+	for name, item := range processedStreams {
 		streams[name] = NewStream(item)
 	}
 
