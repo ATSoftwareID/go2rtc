@@ -147,7 +147,7 @@
             groupDiv.className = 'group-section mb-4';
             
             const headerDiv = document.createElement('div');
-            headerDiv.className = 'group-header p-3 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer transition-colors border border-gray-300';
+            headerDiv.className = 'group-header p-4 bg-white hover:bg-gray-50 rounded-lg cursor-pointer transition-all duration-200 border border-gray-200 shadow-sm hover:shadow-md';
             headerDiv.dataset.group = groupName;
             
             const onlineCount = Object.values(groupStreams).reduce((total, stream) => {
@@ -155,22 +155,34 @@
             }, 0);
             
             headerDiv.innerHTML = `
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-2">
-                        <svg class="w-4 h-4 text-gray-600 group-toggle transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                        </svg>
-                        <span class="font-semibold text-gray-800">${groupName}</span>
-                        <span class="text-sm text-gray-500">(${streamCount} streams)</span>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <div class="flex items-center space-x-1">
-                            <div class="w-2 h-2 ${onlineCount > 0 ? 'bg-green-500' : 'bg-gray-400'} rounded-full"></div>
-                            <span class="text-sm text-gray-600">${onlineCount} active</span>
+                <div class="space-y-3">
+                    <!-- Main header row -->
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <svg class="w-5 h-5 text-gray-500 group-toggle transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                            <div class="flex flex-col">
+                                <span class="font-bold text-gray-900 text-lg">${groupName}</span>
+                                <span class="text-sm text-gray-500">${streamCount} stream${streamCount !== 1 ? 's' : ''} available</span>
+                            </div>
                         </div>
-                        <button class="group-stream-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors" data-group="${groupName}">
+                        <button class="group-stream-btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm hover:shadow-md" data-group="${groupName}">
                             Stream Group
                         </button>
+                    </div>
+                    
+                    <!-- Status row -->
+                    <div class="flex items-center justify-between pl-8">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 ${onlineCount > 0 ? 'bg-green-500' : 'bg-gray-400'} rounded-full shadow-sm"></div>
+                            <span class="text-sm font-medium ${onlineCount > 0 ? 'text-green-700' : 'text-gray-600'}">
+                                ${onlineCount} stream${onlineCount !== 1 ? 's' : ''} active
+                            </span>
+                        </div>
+                        <div class="text-xs text-gray-400">
+                            Click to expand
+                        </div>
                     </div>
                 </div>
             `;
@@ -189,9 +201,11 @@
                 if (contentDiv.classList.contains('hidden')) {
                     contentDiv.classList.remove('hidden');
                     toggleIcon.style.transform = 'rotate(0deg)';
+                    headerDiv.classList.add('bg-blue-50', 'border-blue-300');
                 } else {
                     contentDiv.classList.add('hidden');
                     toggleIcon.style.transform = 'rotate(-90deg)';
+                    headerDiv.classList.remove('bg-blue-50', 'border-blue-300');
                 }
             });
             
@@ -300,8 +314,8 @@
             
             // Reset group headers
             document.querySelectorAll('.group-header').forEach(header => {
-                header.classList.remove('bg-blue-100', 'border-blue-300');
-                header.classList.add('bg-gray-100');
+                header.classList.remove('bg-blue-50', 'border-blue-300', 'shadow-md');
+                header.classList.add('bg-white', 'border-gray-200', 'shadow-sm');
             });
             
             // Highlight selected stream
@@ -438,8 +452,8 @@
             // Highlight the group header
             const groupHeader = document.querySelector(`[data-group="${groupName}"]`);
             if (groupHeader) {
-                groupHeader.classList.add('bg-blue-100', 'border-blue-300');
-                groupHeader.classList.remove('bg-gray-100');
+                groupHeader.classList.add('bg-blue-50', 'border-blue-300', 'shadow-md');
+                groupHeader.classList.remove('bg-white', 'border-gray-200', 'shadow-sm');
             }
         }
 
@@ -479,8 +493,8 @@
             
             // Reset group headers
             document.querySelectorAll('.group-header').forEach(header => {
-                header.classList.remove('bg-blue-100', 'border-blue-300');
-                header.classList.add('bg-gray-100');
+                header.classList.remove('bg-blue-50', 'border-blue-300', 'shadow-md');
+                header.classList.add('bg-white', 'border-gray-200', 'shadow-sm');
             });
         }
 
