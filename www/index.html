@@ -150,6 +150,13 @@
         let streams = {};
         let selectedStream = null;
         let currentVideoElement = null;
+        
+        // Slideshow state
+        let slideshowActive = false;
+        let slideshowInterval = null;
+        let slideshowGroup = null;
+        let slideshowStreams = [];
+        let currentSlideshowIndex = 0;
 
         // Load stream data from API
         async function loadStreams() {
@@ -207,34 +214,37 @@
             }, 0);
             
             headerDiv.innerHTML = `
-                <div class="space-y-2 sm:space-y-3">
-                    <!-- Main header row -->
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-2 sm:space-x-3">
-                            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 group-toggle transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                            <div class="flex flex-col">
-                                <span class="font-bold text-gray-900 text-base sm:text-lg">${groupName}</span>
-                                <span class="text-xs sm:text-sm text-gray-500">${streamCount} stream${streamCount !== 1 ? 's' : ''} available</span>
-                            </div>
+                <div class="space-y-3">
+                    <!-- Top section: Group info -->
+                    <div class="flex items-center space-x-2 sm:space-x-3">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 group-toggle transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                        <div class="flex flex-col">
+                            <span class="font-bold text-gray-900 text-base sm:text-lg">${groupName}</span>
+                            <span class="text-xs sm:text-sm text-gray-500">${streamCount} stream${streamCount !== 1 ? 's' : ''} available</span>
                         </div>
-                        <button class="group-stream-btn bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors duration-200 shadow-sm hover:shadow-md" data-group="${groupName}">
-                            Stream Group
-                        </button>
                     </div>
                     
-                    <!-- Status row -->
-                    <div class="flex items-center justify-between pl-6 sm:pl-8">
-                        <div class="flex items-center space-x-2">
-                            <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 ${onlineCount > 0 ? 'bg-green-500' : 'bg-gray-400'} rounded-full shadow-sm"></div>
-                            <span class="text-xs sm:text-sm font-medium ${onlineCount > 0 ? 'text-green-700' : 'text-gray-600'}">
-                                ${onlineCount} stream${onlineCount !== 1 ? 's' : ''} active
-                            </span>
-                        </div>
-                        <div class="text-xs text-gray-400 hidden sm:block">
+                    <!-- Middle section: Status info -->
+                    <div class="flex items-center space-x-2 pl-6 sm:pl-8">
+                        <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 ${onlineCount > 0 ? 'bg-green-500' : 'bg-gray-400'} rounded-full shadow-sm"></div>
+                        <span class="text-xs sm:text-sm font-medium ${onlineCount > 0 ? 'text-green-700' : 'text-gray-600'}">
+                            ${onlineCount} stream${onlineCount !== 1 ? 's' : ''} active
+                        </span>
+                        <span class="text-xs text-gray-400 hidden sm:block ml-auto">
                             Click to expand
-                        </div>
+                        </span>
+                    </div>
+                    
+                    <!-- Bottom section: Action buttons -->
+                    <div class="flex justify-center space-x-2 pt-2 border-t border-gray-100">
+                        <button class="group-stream-btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors duration-200 shadow-sm hover:shadow-md" data-group="${groupName}">
+                            Stream Group
+                        </button>
+                        <button class="slideshow-btn bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors duration-200 shadow-sm hover:shadow-md" data-group="${groupName}">
+                            Slideshow
+                        </button>
                     </div>
                 </div>
             `;
@@ -244,6 +254,12 @@
                 if (e.target.classList.contains('group-stream-btn')) {
                     e.stopPropagation();
                     streamGroup(groupName, groupStreams);
+                    return;
+                }
+                
+                if (e.target.classList.contains('slideshow-btn')) {
+                    e.stopPropagation();
+                    startSlideshow(groupName, groupStreams);
                     return;
                 }
                 
@@ -351,6 +367,11 @@
 
         // Select and display a stream
         function selectStream(streamName) {
+            // Stop slideshow if active
+            if (slideshowActive) {
+                stopSlideshow();
+            }
+            
             selectedStream = streamName;
             
             // Reset all active indicators
@@ -366,7 +387,7 @@
             
             // Reset group headers
             document.querySelectorAll('.group-header').forEach(header => {
-                header.classList.remove('bg-blue-50', 'border-blue-300', 'shadow-md');
+                header.classList.remove('bg-blue-50', 'border-blue-300', 'bg-green-50', 'border-green-300', 'shadow-md');
                 header.classList.add('bg-white', 'border-gray-200', 'shadow-sm');
             });
             
@@ -519,6 +540,88 @@
             }
         }
 
+        // Start slideshow for a group
+        function startSlideshow(groupName, groupStreams) {
+            // Stop any existing slideshow
+            stopSlideshow();
+            
+            const streamNames = Object.keys(groupStreams);
+            if (streamNames.length === 0) {
+                alert('No streams available in this group');
+                return;
+            }
+            
+            // Initialize slideshow state
+            slideshowActive = true;
+            slideshowGroup = groupName;
+            slideshowStreams = streamNames;
+            currentSlideshowIndex = 0;
+            
+            // Display first stream
+            const firstStreamName = `${groupName}/${streamNames[0]}`;
+            displayStream(firstStreamName);
+            
+            // Update controls
+            document.getElementById('stream-controls').classList.remove('hidden');
+            updateSlideshowControls();
+            
+            // Start interval to switch streams every 10 seconds
+            slideshowInterval = setInterval(() => {
+                currentSlideshowIndex = (currentSlideshowIndex + 1) % streamNames.length;
+                const streamName = `${groupName}/${streamNames[currentSlideshowIndex]}`;
+                displayStream(streamName);
+                updateSlideshowControls();
+            }, 10000);
+            
+            // Update UI highlighting
+            document.querySelectorAll('.stream-item').forEach(item => {
+                item.classList.remove('bg-blue-100', 'border-blue-300');
+                item.classList.add('bg-gray-50', 'border-transparent');
+            });
+            
+            // Highlight the group header
+            const groupHeader = document.querySelector(`[data-group="${groupName}"]`);
+            if (groupHeader) {
+                groupHeader.classList.add('bg-green-50', 'border-green-300', 'shadow-md');
+                groupHeader.classList.remove('bg-white', 'border-gray-200', 'shadow-sm');
+            }
+            
+            // Close mobile sidebar when slideshow is selected
+            if (window.innerWidth < 1024) {
+                closeMobileSidebar();
+            }
+        }
+
+        // Stop slideshow
+        function stopSlideshow() {
+            if (slideshowInterval) {
+                clearInterval(slideshowInterval);
+                slideshowInterval = null;
+            }
+            slideshowActive = false;
+            slideshowGroup = null;
+            slideshowStreams = [];
+            currentSlideshowIndex = 0;
+            
+            // Remove slideshow controls
+            const slideshowControls = document.getElementById('slideshow-controls');
+            if (slideshowControls) {
+                slideshowControls.remove();
+            }
+        }
+
+        // Update slideshow controls
+        function updateSlideshowControls() {
+            if (!slideshowActive) return;
+            
+            const currentStreamName = slideshowStreams[currentSlideshowIndex];
+            const streamCount = slideshowStreams.length;
+            const currentPosition = currentSlideshowIndex + 1;
+            
+            document.getElementById('current-stream-name').textContent = 
+                `${slideshowGroup} - ${currentStreamName} (${currentPosition}/${streamCount})`;
+        }
+
         // Update stream count display
         function updateStreamCount() {
             const count = Object.keys(streams).length;
@@ -527,14 +630,19 @@
 
         // Close current stream
         function closeStream() {
+            // Stop slideshow if active
+            if (slideshowActive) {
+                stopSlideshow();
+            }
+            
             const displayArea = document.getElementById('stream-display');
             displayArea.innerHTML = `
-                <div class="text-center text-gray-400">
-                    <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="text-center text-gray-400 px-4">
+                    <svg class="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                     </svg>
-                    <h3 class="text-xl font-medium mb-2">Select a stream to begin</h3>
-                    <p class="text-gray-500">Choose any stream from the sidebar to start viewing</p>
+                    <h3 class="text-lg sm:text-xl font-medium mb-2">Select a stream to begin</h3>
+                    <p class="text-sm sm:text-base text-gray-500">Choose any stream from the sidebar to start viewing</p>
                 </div>
             `;
             
@@ -555,7 +663,7 @@
             
             // Reset group headers
             document.querySelectorAll('.group-header').forEach(header => {
-                header.classList.remove('bg-blue-50', 'border-blue-300', 'shadow-md');
+                header.classList.remove('bg-blue-50', 'border-blue-300', 'bg-green-50', 'border-green-300', 'shadow-md');
                 header.classList.add('bg-white', 'border-gray-200', 'shadow-sm');
             });
         }
