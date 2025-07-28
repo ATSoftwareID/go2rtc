@@ -482,11 +482,18 @@
 
         // Toggle fullscreen
         function toggleFullscreen() {
-            if (currentVideoElement) {
-                if (document.fullscreenElement) {
-                    document.exitFullscreen();
-                } else {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                // For individual streams, use the video element
+                if (currentVideoElement) {
                     currentVideoElement.requestFullscreen();
+                } else {
+                    // For group streams, use the entire display area
+                    const displayArea = document.getElementById('stream-display');
+                    if (displayArea) {
+                        displayArea.requestFullscreen();
+                    }
                 }
             }
         }
