@@ -38,14 +38,14 @@
         </div>
     </header>
 
-    <div class="flex h-screen pt-16">
+    <div class="flex" style="height: calc(100vh - 65px);">
         <!-- Stream List Sidebar -->
-        <div class="w-80 bg-white shadow-lg border-r border-gray-200">
-            <div class="p-4 border-b">
+        <div class="w-80 bg-white shadow-lg border-r border-gray-200 flex flex-col">
+            <div class="p-4 border-b flex-shrink-0">
                 <h2 class="text-lg font-semibold text-gray-800 mb-2">Available Streams</h2>
                 <div class="text-sm text-gray-500" id="stream-count">Loading...</div>
             </div>
-            <div class="stream-list overflow-y-auto h-full pb-20">
+            <div class="stream-list overflow-y-auto flex-1">
                 <div id="streams-container" class="p-4 space-y-2">
                     <!-- Stream items will be loaded here -->
                 </div>
@@ -202,7 +202,7 @@
         // Function to create stream item
         function createStreamItem(name, streamData, isGrouped = false) {
             const streamItem = document.createElement('div');
-            streamItem.className = `stream-item p-3 ${isGrouped ? 'ml-6 bg-white' : 'bg-gray-50'} hover:bg-blue-50 rounded-lg cursor-pointer transition-colors border border-transparent hover:border-blue-200`;
+            streamItem.className = `stream-item p-3 ${isGrouped ? 'ml-6 bg-white' : 'bg-gray-50'} hover:bg-blue-50 rounded-lg cursor-pointer transition-colors border border-transparent hover:border-blue-200 relative`;
             streamItem.dataset.streamName = name;
             
             const online = streamData && streamData.consumers ? streamData.consumers.length : 0;
@@ -211,6 +211,7 @@
             const displayName = isGrouped ? name.split('/').slice(1).join('/') : name;
             
             streamItem.innerHTML = `
+                <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-l-lg opacity-0 stream-active-indicator transition-opacity"></div>
                 <div class="flex items-center justify-between">
                     <div class="flex-1">
                         <div class="font-medium text-gray-800 truncate">${displayName}</div>
@@ -286,19 +287,36 @@
         function selectStream(streamName) {
             selectedStream = streamName;
             
+            // Reset all active indicators
+            document.querySelectorAll('.stream-active-indicator').forEach(indicator => {
+                indicator.style.opacity = '0';
+            });
+            
             // Update UI state
             document.querySelectorAll('.stream-item').forEach(item => {
                 item.classList.remove('bg-blue-100', 'border-blue-300');
                 item.classList.add('bg-gray-50', 'border-transparent');
             });
             
+            // Reset group headers
+            document.querySelectorAll('.group-header').forEach(header => {
+                header.classList.remove('bg-blue-100', 'border-blue-300');
+                header.classList.add('bg-gray-100');
+            });
+            
             // Highlight selected stream
             const selectedElement = Array.from(document.querySelectorAll('.stream-item')).find(item => 
-                item.textContent.includes(streamName)
+                item.dataset.streamName === streamName
             );
             if (selectedElement) {
                 selectedElement.classList.remove('bg-gray-50', 'border-transparent');
                 selectedElement.classList.add('bg-blue-100', 'border-blue-300');
+                
+                // Show active indicator
+                const activeIndicator = selectedElement.querySelector('.stream-active-indicator');
+                if (activeIndicator) {
+                    activeIndicator.style.opacity = '1';
+                }
             }
             
             // Display the stream
@@ -444,10 +462,21 @@
             selectedStream = null;
             currentVideoElement = null;
             
+            // Reset all active indicators
+            document.querySelectorAll('.stream-active-indicator').forEach(indicator => {
+                indicator.style.opacity = '0';
+            });
+            
             // Remove selection highlighting
             document.querySelectorAll('.stream-item').forEach(item => {
                 item.classList.remove('bg-blue-100', 'border-blue-300');
                 item.classList.add('bg-gray-50', 'border-transparent');
+            });
+            
+            // Reset group headers
+            document.querySelectorAll('.group-header').forEach(header => {
+                header.classList.remove('bg-blue-100', 'border-blue-300');
+                header.classList.add('bg-gray-100');
             });
         }
 
