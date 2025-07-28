@@ -1,0 +1,28 @@
+{
+  "name": "RotiKebanggaan CCTV Dashboard",
+  "short_name": "RotiKebanggaan CCTV",
+  "description": "CCTV monitoring dashboard for RotiKebanggaan",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f9fafb",
+  "theme_color": "#1f2937",
+  "orientation": "landscape-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "https://rotikebanggaan.com/logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://rotikebanggaan.com/logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["security", "productivity"],
+  "lang": "en",
+  "dir": "ltr"
+} 
