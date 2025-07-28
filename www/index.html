@@ -334,26 +334,19 @@
             // Clear previous content
             displayArea.innerHTML = '';
             
-            // Create container for the video with proper sizing
-            const videoContainer = document.createElement('div');
-            videoContainer.className = 'w-full h-full flex items-center justify-center';
-            videoContainer.style.maxWidth = '100%';
-            videoContainer.style.maxHeight = '100%';
-            videoContainer.style.overflow = 'hidden';
-            
-            // Create video stream element
+            // Create video stream element that fills the display area
             const videoElement = document.createElement('video-stream');
+            videoElement.style.width = '100%';
+            videoElement.style.height = '100%';
             videoElement.style.maxWidth = '100%';
             videoElement.style.maxHeight = '100%';
-            videoElement.style.width = 'auto';
-            videoElement.style.height = 'auto';
             videoElement.style.objectFit = 'contain';
+            videoElement.style.display = 'block';
             videoElement.background = true;
             videoElement.mode = 'webrtc,mse,hls,mjpeg';
             videoElement.src = new URL(`api/ws?src=${encodeURIComponent(streamName)}`, location.href);
             
-            videoContainer.appendChild(videoElement);
-            displayArea.appendChild(videoContainer);
+            displayArea.appendChild(videoElement);
             currentVideoElement = videoElement;
         }
 
