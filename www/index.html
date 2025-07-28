@@ -17,6 +17,35 @@
             background: #c1c1c1;
             border-radius: 3px;
         }
+        
+        /* Mobile sidebar transitions */
+        .sidebar-mobile {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        .sidebar-mobile.open {
+            transform: translateX(0);
+        }
+        
+        /* Ensure desktop sidebar is visible */
+        @media (min-width: 1024px) {
+            .sidebar-mobile {
+                transform: translateX(0) !important;
+            }
+        }
+        
+        /* Mobile overlay */
+        .mobile-overlay {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        
+        .mobile-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
     </style>
     
     <!-- Favicon -->
@@ -26,14 +55,20 @@
 <body class="bg-gray-50 font-sans">
     <!-- Header -->
     <header class="bg-white shadow-sm border-b">
-        <div class="px-6 py-4">
+        <div class="px-4 sm:px-6 py-3 sm:py-4">
             <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <img src="https://rotikebanggaan.com/logo.jpg" alt="RotiKebanggaan Logo" class="h-10 w-10 object-contain">
-                    <h1 class="text-2xl font-bold text-gray-800">RotiKebanggaan CCTV</h1>
+                <div class="flex items-center space-x-2 sm:space-x-3">
+                    <img src="https://rotikebanggaan.com/logo.jpg" alt="RotiKebanggaan Logo" class="h-8 w-8 sm:h-10 sm:w-10 object-contain">
+                    <h1 class="text-lg sm:text-2xl font-bold text-gray-800">RotiKebanggaan CCTV</h1>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <div class="text-sm text-gray-500">v.1</div>
+                <div class="flex items-center space-x-2 sm:space-x-4">
+                    <div class="text-xs sm:text-sm text-gray-500">v.1</div>
+                    <!-- Mobile menu button -->
+                    <button id="mobile-menu-btn" class="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
                     <!-- <a href="original.html" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">
                         Original Interface
                     </a> -->
@@ -42,52 +77,65 @@
         </div>
     </header>
 
-    <div class="flex" style="height: calc(100vh - 65px);">
+            <!-- Mobile overlay -->
+        <div id="mobile-overlay" class="mobile-overlay fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden pointer-events-none lg:pointer-events-auto"></div>
+    
+    <div class="flex flex-col lg:flex-row" style="height: calc(100vh - 65px);">
         <!-- Stream List Sidebar -->
-        <div class="w-80 bg-white shadow-lg border-r border-gray-200 flex flex-col">
-            <div class="p-4 border-b flex-shrink-0">
-                <h2 class="text-lg font-semibold text-gray-800 mb-2">Available Streams</h2>
-                <div class="text-sm text-gray-500" id="stream-count">Loading...</div>
+        <div id="sidebar" class="sidebar-mobile lg:translate-x-0 lg:w-80 w-full max-w-sm bg-white shadow-lg border-r border-gray-200 flex flex-col fixed lg:relative z-50 h-full lg:z-auto">
+            <div class="p-3 sm:p-4 border-b flex-shrink-0">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base sm:text-lg font-semibold text-gray-800 mb-1 sm:mb-2">Available Streams</h2>
+                        <div class="text-xs sm:text-sm text-gray-500" id="stream-count">Loading...</div>
+                    </div>
+                    <!-- Close button for mobile -->
+                    <button id="close-sidebar-btn" class="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
             <div class="stream-list overflow-y-auto flex-1">
-                <div id="streams-container" class="p-4 space-y-2">
+                <div id="streams-container" class="p-3 sm:p-4 space-y-2">
                     <!-- Stream items will be loaded here -->
                 </div>
             </div>
         </div>
 
         <!-- Main Content Area -->
-        <div class="flex-1 flex flex-col">
+        <div class="flex-1 flex flex-col lg:ml-0">
             <!-- Stream Display -->
             <div class="flex-1 flex items-center justify-center bg-black">
                 <div id="stream-display" class="w-full h-full flex items-center justify-center">
-                    <div class="text-center text-gray-400">
-                        <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="text-center text-gray-400 px-4">
+                        <svg class="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                         </svg>
-                        <h3 class="text-xl font-medium mb-2">Select a stream to begin</h3>
-                        <p class="text-gray-500">Choose any stream from the sidebar to start viewing</p>
+                        <h3 class="text-lg sm:text-xl font-medium mb-2">Select a stream to begin</h3>
+                        <p class="text-sm sm:text-base text-gray-500">Choose any stream from the sidebar to start viewing</p>
                     </div>
                 </div>
             </div>
 
             <!-- Stream Controls -->
-            <div id="stream-controls" class="bg-white border-t p-4 hidden">
+            <div id="stream-controls" class="bg-white border-t p-3 sm:p-4 hidden">
                 <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-4">
-                        <h3 id="current-stream-name" class="text-lg font-medium text-gray-800"></h3>
-                        <div class="flex items-center space-x-2">
+                    <div class="flex items-center space-x-2 sm:space-x-4 flex-1 min-w-0">
+                        <h3 id="current-stream-name" class="text-base sm:text-lg font-medium text-gray-800 truncate"></h3>
+                        <div class="flex items-center space-x-2 flex-shrink-0">
                             <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span class="text-sm text-gray-600">Live</span>
+                            <span class="text-xs sm:text-sm text-gray-600">Live</span>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <button id="fullscreen-btn" class="bg-gray-100 hover:bg-gray-200 p-2 rounded-lg transition-colors">
+                    <div class="flex items-center space-x-2 flex-shrink-0">
+                        <button id="fullscreen-btn" class="bg-gray-100 hover:bg-gray-200 p-2 sm:p-2 rounded-lg transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
                             </svg>
                         </button>
-                        <button id="close-stream" class="bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded-lg transition-colors">
+                        <button id="close-stream" class="bg-red-100 hover:bg-red-200 text-red-600 p-2 sm:p-2 rounded-lg transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
@@ -151,7 +199,7 @@
             groupDiv.className = 'group-section mb-4';
             
             const headerDiv = document.createElement('div');
-            headerDiv.className = 'group-header p-4 bg-white hover:bg-gray-50 rounded-lg cursor-pointer transition-all duration-200 border border-gray-200 shadow-sm hover:shadow-md';
+            headerDiv.className = 'group-header p-3 sm:p-4 bg-white hover:bg-gray-50 rounded-lg cursor-pointer transition-all duration-200 border border-gray-200 shadow-sm hover:shadow-md';
             headerDiv.dataset.group = groupName;
             
             const onlineCount = Object.values(groupStreams).reduce((total, stream) => {
@@ -159,32 +207,32 @@
             }, 0);
             
             headerDiv.innerHTML = `
-                <div class="space-y-3">
+                <div class="space-y-2 sm:space-y-3">
                     <!-- Main header row -->
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-3">
-                            <svg class="w-5 h-5 text-gray-500 group-toggle transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="flex items-center space-x-2 sm:space-x-3">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 group-toggle transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                             <div class="flex flex-col">
-                                <span class="font-bold text-gray-900 text-lg">${groupName}</span>
-                                <span class="text-sm text-gray-500">${streamCount} stream${streamCount !== 1 ? 's' : ''} available</span>
+                                <span class="font-bold text-gray-900 text-base sm:text-lg">${groupName}</span>
+                                <span class="text-xs sm:text-sm text-gray-500">${streamCount} stream${streamCount !== 1 ? 's' : ''} available</span>
                             </div>
                         </div>
-                        <button class="group-stream-btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm hover:shadow-md" data-group="${groupName}">
+                        <button class="group-stream-btn bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors duration-200 shadow-sm hover:shadow-md" data-group="${groupName}">
                             Stream Group
                         </button>
                     </div>
                     
                     <!-- Status row -->
-                    <div class="flex items-center justify-between pl-8">
+                    <div class="flex items-center justify-between pl-6 sm:pl-8">
                         <div class="flex items-center space-x-2">
-                            <div class="w-3 h-3 ${onlineCount > 0 ? 'bg-green-500' : 'bg-gray-400'} rounded-full shadow-sm"></div>
-                            <span class="text-sm font-medium ${onlineCount > 0 ? 'text-green-700' : 'text-gray-600'}">
+                            <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 ${onlineCount > 0 ? 'bg-green-500' : 'bg-gray-400'} rounded-full shadow-sm"></div>
+                            <span class="text-xs sm:text-sm font-medium ${onlineCount > 0 ? 'text-green-700' : 'text-gray-600'}">
                                 ${onlineCount} stream${onlineCount !== 1 ? 's' : ''} active
                             </span>
                         </div>
-                        <div class="text-xs text-gray-400">
+                        <div class="text-xs text-gray-400 hidden sm:block">
                             Click to expand
                         </div>
                     </div>
@@ -220,7 +268,7 @@
         // Function to create stream item
         function createStreamItem(name, streamData, isGrouped = false) {
             const streamItem = document.createElement('div');
-            streamItem.className = `stream-item p-3 ${isGrouped ? 'ml-6 bg-white' : 'bg-gray-50'} hover:bg-blue-50 rounded-lg cursor-pointer transition-colors border border-transparent hover:border-blue-200 relative`;
+            streamItem.className = `stream-item p-2.5 sm:p-3 ${isGrouped ? 'ml-4 sm:ml-6 bg-white' : 'bg-gray-50'} hover:bg-blue-50 rounded-lg cursor-pointer transition-colors border border-transparent hover:border-blue-200 relative`;
             streamItem.dataset.streamName = name;
             
             const online = streamData && streamData.consumers ? streamData.consumers.length : 0;
@@ -231,17 +279,17 @@
             streamItem.innerHTML = `
                 <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-l-lg opacity-0 stream-active-indicator transition-opacity"></div>
                 <div class="flex items-center justify-between">
-                    <div class="flex-1">
-                        <div class="font-medium text-gray-800 truncate">${displayName}</div>
-                        <div class="text-sm text-gray-500 mt-1">
+                    <div class="flex-1 min-w-0">
+                        <div class="font-medium text-gray-800 truncate text-sm sm:text-base">${displayName}</div>
+                        <div class="text-xs sm:text-sm text-gray-500 mt-1">
                             <span class="inline-flex items-center">
                                 <div class="w-2 h-2 ${statusColor} rounded-full mr-2"></div>
                                 ${online} viewer${online !== 1 ? 's' : ''}
                             </span>
                         </div>
                     </div>
-                    <div class="ml-2">
-                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="ml-2 flex-shrink-0">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                         </svg>
                     </div>
@@ -285,12 +333,12 @@
             if (Object.keys(ungrouped).length > 0) {
                 if (Object.keys(groups).length > 0) {
                     const separator = document.createElement('div');
-                    separator.className = 'border-t border-gray-200 my-4';
+                    separator.className = 'border-t border-gray-200 my-3 sm:my-4';
                     container.appendChild(separator);
                 }
                 
                 const ungroupedHeader = document.createElement('div');
-                ungroupedHeader.className = 'text-sm font-medium text-gray-600 mb-2 px-2';
+                ungroupedHeader.className = 'text-xs sm:text-sm font-medium text-gray-600 mb-2 px-2';
                 ungroupedHeader.textContent = 'Individual Streams';
                 container.appendChild(ungroupedHeader);
                 
@@ -343,6 +391,11 @@
             // Show controls
             document.getElementById('stream-controls').classList.remove('hidden');
             document.getElementById('current-stream-name').textContent = streamName;
+            
+            // Close mobile sidebar when stream is selected
+            if (window.innerWidth < 1024) {
+                closeMobileSidebar();
+            }
         }
 
         // Display the selected stream
@@ -392,26 +445,26 @@
             const gridContainer = document.createElement('div');
             gridContainer.className = 'w-full h-full grid gap-2 p-2';
             
-            // Determine grid layout based on stream count
+            // Determine grid layout based on stream count (mobile-first, then responsive)
             let gridCols, gridRows;
             if (streamCount === 1) {
                 gridCols = 1; gridRows = 1;
                 gridContainer.className += ' grid-cols-1 grid-rows-1';
             } else if (streamCount === 2) {
                 gridCols = 2; gridRows = 1;
-                gridContainer.className += ' grid-cols-2 grid-rows-1';
+                gridContainer.className += ' grid-cols-1 sm:grid-cols-2 grid-rows-1';
             } else if (streamCount <= 4) {
                 gridCols = 2; gridRows = 2;
-                gridContainer.className += ' grid-cols-2 grid-rows-2';
+                gridContainer.className += ' grid-cols-1 sm:grid-cols-2 grid-rows-2';
             } else if (streamCount <= 6) {
                 gridCols = 3; gridRows = 2;
-                gridContainer.className += ' grid-cols-3 grid-rows-2';
+                gridContainer.className += ' grid-cols-1 sm:grid-cols-2 md:grid-cols-3 grid-rows-2';
             } else if (streamCount <= 9) {
                 gridCols = 3; gridRows = 3;
-                gridContainer.className += ' grid-cols-3 grid-rows-3';
+                gridContainer.className += ' grid-cols-1 sm:grid-cols-2 md:grid-cols-3 grid-rows-3';
             } else {
                 gridCols = 4; gridRows = Math.ceil(streamCount / 4);
-                gridContainer.className += ' grid-cols-4';
+                gridContainer.className += ' grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4';
                 gridContainer.style.gridTemplateRows = `repeat(${gridRows}, 1fr)`;
             }
             
@@ -458,6 +511,11 @@
             if (groupHeader) {
                 groupHeader.classList.add('bg-blue-50', 'border-blue-300', 'shadow-md');
                 groupHeader.classList.remove('bg-white', 'border-gray-200', 'shadow-sm');
+            }
+            
+            // Close mobile sidebar when group is selected
+            if (window.innerWidth < 1024) {
+                closeMobileSidebar();
             }
         }
 
@@ -531,9 +589,23 @@
             }
         }
 
+        // Mobile sidebar functions
+        function openMobileSidebar() {
+            document.getElementById('sidebar').classList.add('open');
+            document.getElementById('mobile-overlay').classList.add('open');
+        }
+
+        function closeMobileSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('mobile-overlay').classList.remove('open');
+        }
+
         // Event listeners
         document.getElementById('close-stream').addEventListener('click', closeStream);
         document.getElementById('fullscreen-btn').addEventListener('click', toggleFullscreen);
+        document.getElementById('mobile-menu-btn').addEventListener('click', openMobileSidebar);
+        document.getElementById('close-sidebar-btn').addEventListener('click', closeMobileSidebar);
+        document.getElementById('mobile-overlay').addEventListener('click', closeMobileSidebar);
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', () => {
